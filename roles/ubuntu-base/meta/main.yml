@@ -1,0 +1,5 @@
+---
+dependencies:
+  - ubuntu-python
+  - ubuntu-console
+  - sshkeys
