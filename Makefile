@@ -60,7 +60,7 @@ hostname /etc/ansible.hostname:
 
 .PHONY: kexec
 
-kexec: /usr/sbin/kexec /etc/systemd/system/systemd-reboot.service.d/override.conf
+kexec: /usr/sbin/kexec /etc/systemd/system/systemd-reboot.service.d/override.conf /etc/systemd/system/kexec-load.service
 
 /usr/sbin/kexec:
 	apt-get -y install kexec-tools
@@ -68,6 +68,12 @@ kexec: /usr/sbin/kexec /etc/systemd/system/systemd-reboot.service.d/override.con
 /etc/systemd/system/systemd-reboot.service.d/override.conf: override.conf
 	mkdir -p $(@D)
 	cp $< $@
+	systemctl daemon-reload
+
+/etc/systemd/system/kexec-load.service:  kexec-load.service
+	cp $< $@
+	systemctl enable kexec-load
+	systemctl start kexec-load
 	systemctl daemon-reload
 
 $(ANSBIN): | /usr/bin/apt-get
