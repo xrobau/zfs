@@ -79,6 +79,7 @@
     dest: /etc/sysctl.d/
   with_items:
     - 10-keepalives.conf
+    - 50-zfs-server.conf
   notify: sysctl-reload
   tags:
     - sysctl
