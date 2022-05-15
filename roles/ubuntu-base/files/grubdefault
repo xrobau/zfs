@@ -5,7 +5,7 @@
 # update /boot/grub/grub.cfg.
 
 GRUB_DEFAULT=0
-GRUB_TIMEOUT_STYLE=hidden
+GRUB_TIMEOUT_STYLE=countdown
 GRUB_TIMEOUT=5
 GRUB_DISTRIBUTOR=`lsb_release -i -s 2> /dev/null || echo Debian`
 
@@ -20,9 +20,10 @@ GRUB_CMDLINE_LINUX_DEFAULT=""
 #    Disable all SPECTRE/etc mitigations (minor performance improvement)
 # init_on_alloc=0:
 #    Do not clear pages when allocated (significant performance improvement)
-GRUB_CMDLINE_LINUX="net.ifnames=0 biosdevname=0 mitigations=off init_on_alloc=0"
+GRUB_CMDLINE_LINUX="nofb nomodeset net.ifnames=0 biosdevname=0 mitigations=off init_on_alloc=0"
 
 # Always text console
 GRUB_TERMINAL=console
+GRUB_GFXMODE=text
 
 

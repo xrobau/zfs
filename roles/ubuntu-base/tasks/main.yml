@@ -25,6 +25,9 @@
       - iputils-ping
       - open-vm-tools
       - jq
+      - netplan.io
+      - fdisk
+      - software-properties-common
     state: present
 
 - name: Update /etc/hosts if needed
@@ -154,4 +157,21 @@
   when: forcedns is defined and rconf.stat.islnk
   tags:
     - dns
+
+# U22.04 has SSH8, which disables rsa keys.
+- name: Allow ssh-rsa in ssh keys
+  lineinfile:
+    path: /etc/ssh/ssh_config
+    state: present
+    insertafter: ^Host
+    regexp: 'PubkeyAcceptedKeyTypes '
+    line: "    PubkeyAcceptedKeyTypes +ssh-rsa"
+
+- name: Enable agent forwarding
+  lineinfile:
+    path: /etc/ssh/ssh_config
+    state: present
+    insertafter: ^Host
+    regexp: 'ForwardAgent '
+    line: "    ForwardAgent yes"
 
