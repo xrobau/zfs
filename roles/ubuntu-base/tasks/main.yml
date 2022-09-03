@@ -125,7 +125,7 @@
   tags:
     - systemd
 
-- name: Enable memory deduplication
+- name: Make sure memory deduplication is disabled
   copy:
     src: ksm.conf
     dest: /etc/tmpfiles.d/
