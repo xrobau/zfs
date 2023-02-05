@@ -28,6 +28,12 @@
       - netplan.io
       - fdisk
       - software-properties-common
+      - cpuid
+      - rasdaemon
+      - numactl
+      - numad
+      - numatop
+      - sg3-utils-udev
     state: present
 
 - name: Update /etc/hosts if needed
@@ -91,6 +97,12 @@
   tags:
     - net
     - sysctl
+
+- name: Make sure rasdaemon is ready to catch any hardware errors
+  service:
+    name: rasdaemon
+    state: started
+    enabled: true
 
 - name: Create default ssh config
   copy:
@@ -175,3 +187,4 @@
     regexp: 'ForwardAgent '
     line: "    ForwardAgent yes"
 
+- meta: flush_handlers
