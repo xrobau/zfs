@@ -1,0 +1,13 @@
+** THIS IS A STORAGE SERVER **
+
+When this machine is rebooted it will ALWAYS USE KEXEC.
+
+If you have changed the kernel params, they will not take effect
+as the default setting is --reuse-cmdline. Edit the kexec-load.service
+file in /etc/systemd/system with the correct params, and run
+systemctl daemon-reload. Or just do a full reboot.
+
+To force a full system reboot use 'systemctl --force reboot'
+
+IPMI Address of this machine is {{ ipmi.stdout | default("Unknown") }}
+

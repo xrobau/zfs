@@ -14,10 +14,9 @@ export ANSIBLE_HOST_KEY_CHECKING
 MKDIRS=$(TMPDIR) $(GROUPVARS) $(GROUPVARS)/all
 
 # Things that are always needed
-TOOLS += curl vim ping wget netstat ansible-playbook
+TOOLS += curl vim ping wget netstat
 PKG_ping=iputils-ping
 PKG_netstat=net-tools
-PKG_ansible-playbook=ansible
 
 # This is first so we always have a default that is harmless (assuming
 # you think that 'make setup' is harmless, which I think it is!)

@@ -5,7 +5,11 @@ PKG_zfs = zfsutils-linux
 MPROBE=/etc/modprobe.d
 
 .PHONY: zfs
-zfs: $(MPROBE)/zfs.arcmax.conf $(MPROBE)/zfs.defaults.conf /root/zfs.bt
+zfs: /usr/sbin/showmount $(MPROBE)/zfs.arcmax.conf $(MPROBE)/zfs.defaults.conf /root/zfs.bt
+
+/usr/sbin/showmount:
+	@echo "You need to run 'make ansible' first, to configure this machine correctly"
+	@exit 1
 
 /root/zfs.bt: zfs.bt
 	@cp $< $@
