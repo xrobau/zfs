@@ -1,0 +1,5 @@
+STOOLS += kexec
+TOOLS += as
+PKG_kexec = kexec-tools
+PKG_as = binutils
+

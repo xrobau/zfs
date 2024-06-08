@@ -1,4 +1,0 @@
-# Added by ansible
-
-[Service]
-TimeoutStopSec=infinity

@@ -1,0 +1,31 @@
+kprobe:zpl_iter_read, kprobe:zpl_iter_write
+{
+    $kiocb = (struct kiocb *)arg0;
+    $file = (struct file *)$kiocb->ki_filp;
+    $iter = (struct iov_iter *)arg1;
+    if (strncmp(".lck", str($file->f_path.dentry->d_name.name), 4) == 0) { return; } // vmware lock files
+    if (strncmp("datafile-", str($file->f_path.dentry->d_name.name), 9) == 0) { return; } // netfilter datafiles
+    if (strncmp("journalfile-", str($file->f_path.dentry->d_name.name), 12) == 0) { return; } // netfilter datafiles
+    if (strncmp(".iormstats", str($file->f_path.dentry->d_name.name), 10) == 0) { return; } // netfilter datafiles
+    if (strncmp("ml.db", str($file->f_path.dentry->d_name.name), 5) == 0) { return; } // netfilter db
+    $filename = str($file->f_path.dentry->d_name.name);
+    @iops[func, $filename] = count();
+    // @bytes[func, $filename] = stats($iter->count);
+    @bytes[func, $filename] = sum($iter->count);
+}
+
+interval:s:5
+{
+        print(@iops, 10);
+        print(@bytes, 10);
+        clear(@iops);
+        clear(@bytes);
+}
+
+
+END {
+        print(@iops, 10);
+        print(@bytes, 10);
+        clear(@iops);
+        clear(@bytes);
+}

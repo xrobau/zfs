@@ -1,0 +1,32 @@
+TOOLS += bpftrace
+STOOLS += zfs
+PKG_zfs = zfsutils-linux
+
+MPROBE=/etc/modprobe.d
+
+.PHONY: zfs
+zfs: $(MPROBE)/zfs.arcmax.conf $(MPROBE)/zfs.defaults.conf /root/zfs.bt
+
+/root/zfs.bt: zfs.bt
+	@cp $< $@
+
+
+$(MPROBE)/zfs.arcmax.conf:
+	@echo "If this machine is only going to be used as a fileserver then"
+	@echo "all the memory on this machine will be assigned to ZFS apart from"
+	@echo "16GB set aside for OS housekeeping (eg, replication, small docker"
+	@echo "containers, those sorts of things). If it is going to be used for"
+	@echo "other things, ZFS defaults to capping itself at half available"
+	@echo "memory, wasting the other half on a file server."
+	@read -p "Is this machine only going to be ONLY used as a file server [Yn]? " fsc; \
+		R=$$(echo $$fsc | tr '[:upper:]' '[:lower:]' | cut -c1); \
+		if [ "$$R" -a "$$R" != "y" ]; then \
+			touch $@; \
+		else \
+			echo "options zfs zfs_arc_max=$$(awk '/MemTotal:/ { print ( $$2 * 1024 )-( 16 * 1024 * 1024 * 1024) } ' /proc/meminfo)" > $@; \
+		fi
+
+$(MPROBE)/zfs.defaults.conf:
+	@echo "options zfs l2arc_noprefetch=0 zfs_dirty_data_max=17179869184 zfs_vdev_cache_size=16777216" > $@
+	@echo "options zfs l2arc_trim_ahead=100 zfs_txg_timeout=120 l2arc_write_max=524288000 zfs_vdev_write_gap_limit=0" >> $@
+

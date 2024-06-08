@@ -1,4 +1,0 @@
----
-dependencies:
-  - { role: ubuntu-base }
-#  - { role: netdata }
