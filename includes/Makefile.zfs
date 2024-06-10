@@ -5,7 +5,10 @@ PKG_zfs = zfsutils-linux
 MPROBE=/etc/modprobe.d
 
 .PHONY: zfs
-zfs: /usr/sbin/showmount $(MPROBE)/zfs.arcmax.conf $(MPROBE)/zfs.defaults.conf /root/zfs.bt
+zfs: /usr/sbin/showmount $(MPROBE)/zfs.defaults.conf /root/zfs.bt
+
+.PHONY: arcmax
+arcmax: zreserved zconf
 
 /usr/sbin/showmount:
 	@echo "You need to run 'make ansible' first, to configure this machine correctly"
@@ -14,23 +17,39 @@ zfs: /usr/sbin/showmount $(MPROBE)/zfs.arcmax.conf $(MPROBE)/zfs.defaults.conf /
 /root/zfs.bt: zfs.bt
 	@cp $< $@
 
+/var/run/currentmem:
+	@awk '/MemTotal:/ { print int($$2 / 1024 / 1024) } ' /proc/meminfo > $@
 
-$(MPROBE)/zfs.arcmax.conf:
-	@echo "If this machine is only going to be used as a fileserver then"
-	@echo "all the memory on this machine will be assigned to ZFS apart from"
-	@echo "16GB set aside for OS housekeeping (eg, replication, small docker"
-	@echo "containers, those sorts of things). If it is going to be used for"
-	@echo "other things, ZFS defaults to capping itself at half available"
-	@echo "memory, wasting the other half on a file server."
-	@read -p "Is this machine only going to be ONLY used as a file server [Yn]? " fsc; \
-		R=$$(echo $$fsc | tr '[:upper:]' '[:lower:]' | cut -c1); \
-		if [ "$$R" -a "$$R" != "y" ]; then \
-			touch $@; \
+.PHONY: zreserved
+zreserved /etc/zfs.reserved: /var/run/currentmem
+	@echo "If this machine is only going to be used as a fileserver then ZFS should"
+	@echo "be allowed to use all the memory on this machine, apart from 16GB, which"
+	@echo "can be used for small things like OS housekeeping, monitoring, small lxc"
+	@echo -e "containers, replication tools, etc.\n"
+	@echo "If this is *not* going to be a dedicated fileserver, enter an amount (in GB)"
+	@echo "below. If you enter the number ZERO (0), ZFS will configure itself with"
+	@echo -e "defaults which currently has a limit of half the available RAM.\n"
+	@echo "This machine has roughly $$(cat /var/run/currentmem)MB of RAM, which the default choice of 16GB"
+	@echo -e "will allow ZFS to use up to $$(awk '{ print int($$1 - 16) }' /var/run/currentmem)GB of it.\n"
+	@read -e -p "How many GB of RAM should be reserved for the system? [16]? " fsc; \
+		if [ "$$fsc" == "" ]; then fsc=16; fi; \
+		R=$$(echo $$fsc | awk '{ print int($$1) }'); \
+		if [ "$$R" -lt 8 -a "$$R" -ne 0 ]; then echo "$$R is too small. Minimum is 8gb"; R=8; fi; \
+		echo -n $$R > /etc/zfs.reserved
+
+.PHONY: zconf
+zconf $(MPROBE)/zfs.arcmax.conf: /etc/zfs.reserved
+	@R=$$(cat $<); \
+		( \
+		echo "# /etc/zfs.reserved set to $$R"; \
+		echo "# Current system System Memory is $$(cat /var/run/currentmem)GB"; \
+		if [ "$$R" -lt 1 ]; then \
+			echo "# zfs_arc_max disabled as reserved is set to $$R"; \
 		else \
-			echo "options zfs zfs_arc_max=$$(awk '/MemTotal:/ { print ( $$2 * 1024 )-( 16 * 1024 * 1024 * 1024) } ' /proc/meminfo)" > $@; \
-		fi
+			echo "options zfs zfs_arc_max=$$(awk '/MemTotal:/ { print ( $$2 * 1024 )-( '$$R' * 1024 * 1024 * 1024) } ' /proc/meminfo)"; \
+		fi; ) > $(MPROBE)/zfs.arcmax.conf
 
-$(MPROBE)/zfs.defaults.conf:
+$(MPROBE)/zfs.defaults.conf: $(MPROBE)/zfs.arcmax.conf
 	@echo "options zfs l2arc_noprefetch=0 zfs_dirty_data_max=17179869184 zfs_vdev_cache_size=16777216" > $@
 	@echo "options zfs l2arc_trim_ahead=100 zfs_txg_timeout=120 l2arc_write_max=524288000 zfs_vdev_write_gap_limit=0" >> $@
 
