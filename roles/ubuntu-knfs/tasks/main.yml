@@ -68,4 +68,13 @@
     - kexec
   notify: systemctl-reload
 
+- name: Increase number of threads for nfs clients
+  copy:
+    dest: /etc/nfs.conf.d/
+    src: nfs-threads.conf
+    mode: 0755
+  tags:
+    - nfs
+  notify:
+    - nfsd-threads
 

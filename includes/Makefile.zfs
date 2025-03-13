@@ -50,6 +50,6 @@ zconf $(MPROBE)/zfs.arcmax.conf: /etc/zfs.reserved
 		fi; ) > $(MPROBE)/zfs.arcmax.conf
 
 $(MPROBE)/zfs.defaults.conf: $(MPROBE)/zfs.arcmax.conf
-	@echo "options zfs l2arc_noprefetch=0 zfs_dirty_data_max=17179869184 zfs_vdev_cache_size=16777216" > $@
+	@echo "options zfs l2arc_noprefetch=0 zfs_dirty_data_max=17179869184 zfs_vdev_cache_size=0" > $@
 	@echo "options zfs l2arc_trim_ahead=100 zfs_txg_timeout=120 l2arc_write_max=524288000 zfs_vdev_write_gap_limit=0" >> $@
 

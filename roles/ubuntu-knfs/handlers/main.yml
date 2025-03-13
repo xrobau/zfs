@@ -2,3 +2,6 @@
 - name: systemctl-reload
   command: systemctl daemon-reload
 
+- name: nfsd-threads
+  command: echo 32 > /proc/fs/nfsd/threads
+
